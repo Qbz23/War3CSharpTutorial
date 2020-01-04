@@ -16,6 +16,10 @@ namespace War3Map.Template.Source
 
         private static void Main()
         {
+            // Disable Fog
+            FogEnable(false);
+            FogMaskEnable(false);
+
             Helpers.DebugPrint("Hello War3 C#!");
         }
     }
