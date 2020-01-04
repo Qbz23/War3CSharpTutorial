@@ -22,7 +22,68 @@ namespace War3Map.Template.Source
 
         static void spellActions()
         {
-            Helpers.DebugPrint("My spell was cast!");
+            // Range around the caster that targets can be hit from 
+            const float kSpellRange = 750;
+            // The amount of damage each strike deals 
+            const float kDamage = 250;
+            // Max number of targets the spell can hit 
+            const uint kMaxTargets = 6;
+            // a variable to decrement each time we hit a target 
+            uint count = kMaxTargets;
+
+            // Gets the unit that cast the spell associated with  
+            // this trigger and saves it into a variable 
+            unit caster = GetSpellAbilityUnit();
+            // Gets the location of the caster 
+            float startX = GetUnitX(caster);
+            float startY = GetUnitY(caster);
+
+            // Create a group variable to hold the units the spell will hit 
+            group targets = CreateGroup();
+            // Put all units within spellRange of caster into the targets group 
+            GroupEnumUnitsInRange(targets, startX, startY, kSpellRange, null);
+            Helpers.DebugPrint(BlzGroupGetSize(targets).ToString());
+            // This variable will store the target we're currently hitting 
+            // Start with the first unit in the group 
+            unit currentTarget = FirstOfGroup(targets);
+
+            // While there's still a target to hit and we have't yet hit max targets
+            while (currentTarget != null && count > 0)
+            {
+                // GroupEnumUnitsInRangeOfLoc includes allied and dead units 
+                // Check that the unit we're currently considering to hit 
+                // is both an enemy and alive 
+                if (IsUnitEnemy(currentTarget, GetOwningPlayer(caster)) &&
+                    BlzIsUnitSelectable(currentTarget))   // Could use UnitAlive instead BlzUnitSelectable
+                {                                         // But units are still considered alive when playing 
+                                                          // death animation.
+                    // Get the position of the enemy we're targeting 
+                    float targetX = GetUnitX(currentTarget);
+                    float targetY = GetUnitY(currentTarget);
+                    // Teleport our caster to the enemy's position
+                    SetUnitPosition(caster, targetX, targetY);
+
+                    // Have the caster deal damage to the enemy 
+                    UnitDamageTarget(caster, currentTarget, kDamage, true, false,
+                        ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL, null);
+
+                    // Decrement the count, as we hit a target 
+                    count -= 1;
+
+                    // Take a brief pause before teleporting to the next target 
+                    TriggerSleepAction(0.35f);
+                }
+
+                // Remove the unit we just considered from the group 
+                GroupRemoveUnit(targets, currentTarget);
+
+                // Get the next unit in the group to consider. If the group is
+                // empty, this will return null and break out of the while loop
+                currentTarget = FirstOfGroup(targets);
+            }
+
+            // Certain Warcraft 3 types, like groups, need to be cleaned up 
+            DestroyGroup(targets);
         }
 
         private static void Main()
