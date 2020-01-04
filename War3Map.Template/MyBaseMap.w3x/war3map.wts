@@ -8,3 +8,27 @@ STRING 2
 Force 1
 }
 
+STRING 3
+// Units: O000 (MyBlademaster), Name (Name)
+{
+MyBlademaster
+}
+
+STRING 4
+// Abilities: A000 (Omnislash), Name (Name)
+{
+Omnislash
+}
+
+STRING 5
+// Abilities: A000 (Omnislash), Tip (Tooltip - Normal)
+{
+Omnislash
+}
+
+STRING 6
+// Abilities: A000 (Omnislash), Ubertip (Tooltip - Normal - Extended)
+{
+Teleport and strike nearby foes.
+}
+

@@ -11,7 +11,7 @@ namespace War3Map.Template.Launcher
     {
         // Input
         private const string SourceCodeProjectFolderPath = @"..\..\..\..\War3Map.Template.Source";
-        private const string AssetsFolderPath = @".\Assets\";
+        private const string AssetsFolderPath = @"..\..\..\..\Assets\";
         private const string BaseMapPath = @"..\..\..\..\MyBaseMap.w3x";
 
         // Output
