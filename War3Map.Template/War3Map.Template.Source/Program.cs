@@ -62,17 +62,18 @@ namespace War3Map.Template.Source
             // How many wisps to spawn 
             const uint kNumWisps = 12;
             // The radius of the circle to spawn wisps in 
-            const float circleRadius = 500.0f;
+            const float kCircleRadius = 500.0f;
             // The angle between each wisp 
-            const float angleDelta = (2.0f * 3.1415f) / kNumWisps;
+            const float kAngleDelta = (2.0f * 3.1415f) / kNumWisps;
             // A wisp's unitId 
             int wispId = FourCC("ewsp");
             // for each wisp we want to spawn...
             for (uint i = 0; i < kNumWisps; ++i)
             {
                 // Calculate position in the circle
-                float x = circleRadius * Cos(angleDelta * i);
-                float y = circleRadius * Sin(angleDelta * i);
+                float angle = kAngleDelta * i;
+                float x = kCircleRadius * Cos(angle);
+                float y = kCircleRadius * Sin(angle);
 
                 // Spawn wisp 
                 CreateUnit(neutralAggressive, wispId, x, y, 0.0f);
