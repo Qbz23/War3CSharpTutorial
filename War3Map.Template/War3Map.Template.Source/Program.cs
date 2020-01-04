@@ -22,8 +22,12 @@ namespace War3Map.Template.Source
 
             // get id of custom unit                                 
             int customUnitId = FourCC("O000");
-            // create custom unit for local player at map center (0, 0), facing 0 degrees                     
-            CreateUnit(GetLocalPlayer(), customUnitId, 0.0f, 0.0f, 0.0f);
+            // save spawned unit into a variable
+            unit myUnit = CreateUnit(GetLocalPlayer(), customUnitId, 0.0f, 0.0f, 0.0f);
+            // get id of custom ability 
+            int customSpellId = FourCC("A000");
+            // give custom ability to spawned unit
+            UnitAddAbility(myUnit, customSpellId);
 
             Helpers.DebugPrint("Hello War3 C#!");
         }

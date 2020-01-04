@@ -14,3 +14,21 @@ STRING 3
 MyBlademaster
 }
 
+STRING 4
+// Abilities: A000 (Omnislash), Name (Name)
+{
+Omnislash
+}
+
+STRING 5
+// Abilities: A000 (Omnislash), Tip (Tooltip - Normal)
+{
+Omnislash
+}
+
+STRING 6
+// Abilities: A000 (Omnislash), Ubertip (Tooltip - Normal - Extended)
+{
+Teleport and strike nearby foes.
+}
+
