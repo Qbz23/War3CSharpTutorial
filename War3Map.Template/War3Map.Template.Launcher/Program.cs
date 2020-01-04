@@ -12,6 +12,7 @@ namespace War3Map.Template.Launcher
         // Input
         private const string SourceCodeProjectFolderPath = @"..\..\..\..\War3Map.Template.Source";
         private const string AssetsFolderPath = @".\Assets\";
+        private const string BaseMapPath = @"..\..\..\..\MyBaseMap.w3x";
 
         // Output
         private const string OutputFolderPath = @"..\..\..\..\artifacts";
@@ -28,7 +29,7 @@ namespace War3Map.Template.Launcher
             var mapBuilder = new MapBuilder(OutputMapName);
             var options = CompilerOptions.GetCompilerOptions(SourceCodeProjectFolderPath, OutputFolderPath);
 
-            if (mapBuilder.Build(options, AssetsFolderPath))
+            if (mapBuilder.Build(options, AssetsFolderPath, BaseMapPath))
             {
                 var mapPath = Path.Combine(OutputFolderPath, OutputMapName);
                 var absoluteMapPath = new FileInfo(mapPath).FullName;
