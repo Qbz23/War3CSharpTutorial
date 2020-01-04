@@ -31,6 +31,9 @@ namespace War3Map.Template.Source
             FogEnable(false);
             FogMaskEnable(false);
 
+            //
+            // Set up custom unit
+            //
             // get id of custom unit                                 
             int customUnitId = FourCC("O000");
             // save spawned unit into a variable
@@ -40,6 +43,9 @@ namespace War3Map.Template.Source
             // give custom ability to spawned unit
             UnitAddAbility(myUnit, customSpellId);
 
+            //
+            // Set up spell trigger
+            //
             // Create the trigger 
             trigger spellTrigger = CreateTrigger();
             // Register the event that activates the trigger
@@ -47,6 +53,30 @@ namespace War3Map.Template.Source
                                            EVENT_PLAYER_UNIT_SPELL_EFFECT, null);
             TriggerAddCondition(spellTrigger, Condition(spellCondition));
             TriggerAddAction(spellTrigger, spellActions);
+
+            //
+            // Spawn a circle of wisps to attack 
+            //
+            // The player that will own the spawned units
+            player neutralAggressive = Player(PLAYER_NEUTRAL_AGGRESSIVE);
+            // How many wisps to spawn 
+            const uint kNumWisps = 12;
+            // The radius of the circle to spawn wisps in 
+            const float circleRadius = 500.0f;
+            // The angle between each wisp 
+            const float angleDelta = (2.0f * 3.1415f) / kNumWisps;
+            // A wisp's unitId 
+            int wispId = FourCC("ewsp");
+            // for each wisp we want to spawn...
+            for (uint i = 0; i < kNumWisps; ++i)
+            {
+                // Calculate position in the circle
+                float x = circleRadius * Cos(angleDelta * i);
+                float y = circleRadius * Sin(angleDelta * i);
+
+                // Spawn wisp 
+                CreateUnit(neutralAggressive, wispId, x, y, 0.0f);
+            }
 
             Helpers.DebugPrint("Hello War3 C#!");
         }
