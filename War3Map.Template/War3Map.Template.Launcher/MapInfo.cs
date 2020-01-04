@@ -8,9 +8,9 @@ namespace War3Map.Template.Launcher
         {
             var mapInfo = MapInfo.Default;
 
-            mapInfo.MapName = "Just another Warcraft III map";
-            mapInfo.MapDescription = "Nondescript";
-            mapInfo.MapAuthor = "Unknown";
+            mapInfo.MapName = "Warcraft 3 C# Tutorial";
+            mapInfo.MapDescription = "My Map Description";
+            mapInfo.MapAuthor = "Qbz";
             mapInfo.RecommendedPlayers = "Any";
 
             mapInfo.MapFlags &= ~MapFlags.MeleeMap;

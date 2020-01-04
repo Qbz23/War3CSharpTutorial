@@ -18,7 +18,7 @@ namespace War3Map.Template.Launcher
         private const string OutputMapName = @"Testmap.w3x";
 
         // Warcraft III
-        private const string Warcraft3ExecutableFilePath = null;
+        private const string Warcraft3ExecutableFilePath = @"C:\Program Files (x86)\Warcraft III Beta\x86_64\Warcraft III.exe";
         private const string GraphicsApi = "Direct3D9";
         private const bool PauseGameOnLoseFocus = false;
 
