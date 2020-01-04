@@ -56,11 +56,39 @@ namespace War3Map.Template.Source
                     BlzIsUnitSelectable(currentTarget))   // Could use UnitAlive instead BlzUnitSelectable
                 {                                         // During death animation, units are still considered 
                                                           // alive, but not selectable
+                    //
+                    // Teleport to, face, and attack enemy 
+                    //
+                    const float twoPi = 2.0f * War3Api.Blizzard.bj_PI;
                     // Get the position of the enemy we're targeting 
                     float targetX = GetUnitX(currentTarget);
                     float targetY = GetUnitY(currentTarget);
-                    // Teleport our caster to the enemy's position
-                    SetUnitPosition(caster, targetX, targetY);
+                    // Cant occupy same spot as target. If try to, will get pushed
+                    // out in the same direction every time and it looks bad
+                    // pick a random angle and calculate an offset in that direction
+                    float randomOffsetAngle = GetRandomReal(0.0f, twoPi);
+                    const float kOffsetRadius = 50.0f;
+                    float offsetX = kOffsetRadius * Cos(randomOffsetAngle);
+                    float offsetY = kOffsetRadius * Sin(randomOffsetAngle); 
+                    // teleport a slight offset away from target
+                    SetUnitPosition(caster, targetX + offsetX, targetY + offsetY);
+                    // Might not be in the exact expected position
+                    // get position after teleport 
+                    float newCasterX = GetUnitX(caster);
+                    float newCasterY = GetUnitY(caster);
+                    // Get the diference between the caster and the target 
+                    float deltaX = targetX - newCasterX;
+                    float deltaY = targetY - newCasterY;
+                    // Take the inverse tangent of that difference vector 
+                    float angleInRadians = Atan2(deltaY, deltaX);
+                    // and convert it from radians to degrees 
+                    float angleInDegrees = War3Api.Blizzard.bj_RADTODEG * angleInRadians;
+                    // Make the caster face the calculated angle 
+                    SetUnitFacing(caster, angleInDegrees);
+                    // Have the caster play its attack animation
+                    SetUnitAnimation(caster, "attack");
+                    // Sleep to let the caster play its animation
+                    TriggerSleepAction(0.6f);
 
                     // Have the caster deal damage to the enemy 
                     UnitDamageTarget(caster, currentTarget, kDamage, true, false,
