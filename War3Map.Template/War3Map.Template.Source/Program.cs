@@ -55,8 +55,8 @@ namespace War3Map.Template.Source
                 // is both an enemy and alive 
                 if (IsUnitEnemy(currentTarget, GetOwningPlayer(caster)) &&
                     BlzIsUnitSelectable(currentTarget))   // Could use UnitAlive instead BlzUnitSelectable
-                {                                         // But units are still considered alive when playing 
-                                                          // death animation.
+                {                                         // During death animation, units are still considered 
+                                                          // alive, but not selectable
                     // Get the position of the enemy we're targeting 
                     float targetX = GetUnitX(currentTarget);
                     float targetY = GetUnitY(currentTarget);
