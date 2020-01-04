@@ -42,7 +42,6 @@ namespace War3Map.Template.Source
             group targets = CreateGroup();
             // Put all units within spellRange of caster into the targets group 
             GroupEnumUnitsInRange(targets, startX, startY, kSpellRange, null);
-            Helpers.DebugPrint(BlzGroupGetSize(targets).ToString());
             // This variable will store the target we're currently hitting 
             // Start with the first unit in the group 
             unit currentTarget = FirstOfGroup(targets);
