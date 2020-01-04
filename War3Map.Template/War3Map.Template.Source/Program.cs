@@ -14,6 +14,17 @@ namespace War3Map.Template.Source
             }
         }
 
+        static bool spellCondition()
+        {
+            // Get SpellAbilityId returns the id of the spell that was cast to activate the trigger
+            return GetSpellAbilityId() == FourCC("A000");
+        }
+
+        static void spellActions()
+        {
+            Helpers.DebugPrint("My spell was cast!");
+        }
+
         private static void Main()
         {
             // Disable Fog
@@ -28,6 +39,14 @@ namespace War3Map.Template.Source
             int customSpellId = FourCC("A000");
             // give custom ability to spawned unit
             UnitAddAbility(myUnit, customSpellId);
+
+            // Create the trigger 
+            trigger spellTrigger = CreateTrigger();
+            // Register the event that activates the trigger
+            TriggerRegisterPlayerUnitEvent(spellTrigger, GetLocalPlayer(),
+                                           EVENT_PLAYER_UNIT_SPELL_EFFECT, null);
+            TriggerAddCondition(spellTrigger, Condition(spellCondition));
+            TriggerAddAction(spellTrigger, spellActions);
 
             Helpers.DebugPrint("Hello War3 C#!");
         }
