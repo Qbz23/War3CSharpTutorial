@@ -20,6 +20,11 @@ namespace War3Map.Template.Source
             FogEnable(false);
             FogMaskEnable(false);
 
+            // get id of custom unit                                 
+            int customUnitId = FourCC("O000");
+            // create custom unit for local player at map center (0, 0), facing 0 degrees                     
+            CreateUnit(GetLocalPlayer(), customUnitId, 0.0f, 0.0f, 0.0f);
+
             Helpers.DebugPrint("Hello War3 C#!");
         }
     }
