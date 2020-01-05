@@ -62,6 +62,10 @@ namespace War3Map.Template.Source
             BlzSetAbilityRealLevelField(GetSpellAbility(), 
                                         ABILITY_RLF_FOLLOW_THROUGH_TIME, 0, followThroughTime);
 
+            // Effect model names
+            const string blinkName = @"Abilities\Spells\NightElf\Blink\BlinkCaster.mdl";
+            const string shockName = @"Abilities\Spells\Items\AIlb\AIlbSpecialArt.mdl";
+
             // This variable will store the target we're currently hitting 
             // Start with the first unit in the group 
             unit currentTarget = FirstOfGroup(targets);
@@ -69,6 +73,12 @@ namespace War3Map.Template.Source
             // While there's still a target to hit and we have't yet hit max targets
             while (currentTarget != null)
             {
+                // Get start location for blink effect 
+                float oldCasterX = GetUnitX(caster);
+                float oldCasterY = GetUnitY(caster);
+                // Create blink effect, save it to clean up later 
+                effect preBlinkEffect = AddSpecialEffect(blinkName, oldCasterX, oldCasterY);
+
                 //
                 // Teleport to, face, and attack enemy 
                 //
@@ -90,6 +100,9 @@ namespace War3Map.Template.Source
                 float newCasterX = GetUnitX(caster);
                 float newCasterY = GetUnitY(caster);
 
+                // Spawn another blink at caster's new position
+                effect postBlinkEffect = AddSpecialEffect(blinkName, newCasterX, newCasterY);
+
                 // Get the diference between the caster and the target 
                 float deltaX = targetX - newCasterX;
                 float deltaY = targetY - newCasterY;
@@ -108,11 +121,21 @@ namespace War3Map.Template.Source
                 UnitDamageTarget(caster, currentTarget, kDamage, true, false,
                     ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL, null);
 
+                // Create shock effect on damage attached to the target's chest
+                effect shockEffect = AddSpecialEffectTarget(shockName, currentTarget, "chest");
+                // Scale up shock effect 
+                BlzSetSpecialEffectScale(shockEffect, 1.5f);
+
                 // Remove the unit we just considered from the group 
                 GroupRemoveUnit(targets, currentTarget);
                 // Get the next unit in the group to consider. If the group is
                 // empty, this will return null and break out of the while loop
                 currentTarget = FirstOfGroup(targets);
+
+                // Clean up effects 
+                DestroyEffect(preBlinkEffect);
+                DestroyEffect(postBlinkEffect);
+                DestroyEffect(shockEffect);
             }
 
             // Certain Warcraft 3 types, like groups, need to be cleaned up 
