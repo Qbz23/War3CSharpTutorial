@@ -38,7 +38,9 @@ namespace War3Map.Template.Source
             // The amount of damage each strike deals 
             const float kDamage = 250;
             // Max number of targets the spell can hit 
-            const uint kMaxTargets = 6;
+            const int kMaxTargets = 6;
+            // variable to decrement when each target is hit
+            int count = kMaxTargets;
 
             // Gets the unit that cast the spell associated with  
             // this trigger and saves it into a variable 
@@ -51,13 +53,13 @@ namespace War3Map.Template.Source
             group targets = CreateGroup();
             // Only the first kMaxTargets units that cause filterCondition 
             // to return true will be added to the group.
-            GroupEnumUnitsInRangeCounted(targets, startX, startY, kSpellRange, 
-                                         Condition(filterCondition), (int)kMaxTargets);
-
+            GroupEnumUnitsInRange(targets, startX, startY, kSpellRange, Condition(filterCondition));
             // Time to play attack animation
             const float kAttackTime = 0.65f;
+            // Will hit Group size units or max targets, whichever is smaller
+            int numTargets = System.Math.Min(kMaxTargets, BlzGroupGetSize(targets));
             // Total time the spell should take 
-            float followThroughTime = kAttackTime * BlzGroupGetSize(targets);
+            float followThroughTime = kAttackTime * numTargets;
             // Sets the spell follow through time to the calculated value 
             BlzSetAbilityRealLevelField(GetSpellAbility(), 
                                         ABILITY_RLF_FOLLOW_THROUGH_TIME, 0, followThroughTime);
@@ -71,7 +73,7 @@ namespace War3Map.Template.Source
             unit currentTarget = FirstOfGroup(targets);
 
             // While there's still a target to hit and we have't yet hit max targets
-            while (currentTarget != null)
+            while (currentTarget != null && count > 0)
             {
                 // Get start location for blink effect 
                 float oldCasterX = GetUnitX(caster);
@@ -131,6 +133,8 @@ namespace War3Map.Template.Source
                 // Get the next unit in the group to consider. If the group is
                 // empty, this will return null and break out of the while loop
                 currentTarget = FirstOfGroup(targets);
+                //decrement count 
+                count -= 1;
 
                 // Clean up effects 
                 DestroyEffect(preBlinkEffect);
