@@ -20,6 +20,17 @@ namespace War3Map.Template.Source
             return GetSpellAbilityId() == FourCC("A000");
         }
 
+        static bool filterCondition()
+        {
+            // The unit being potentially filtered out of the group
+            unit checkedUnit = GetFilterUnit();
+            // The unit that activated the trigger, in this case the caster 
+            unit caster = GetTriggerUnit();
+            // Include unit in the group if its an enemy and selectable (not dead or dying)
+            return IsUnitEnemy(checkedUnit, GetOwningPlayer(caster)) &&
+                   BlzIsUnitSelectable(checkedUnit);
+        }
+
         static void spellActions()
         {
             // Range around the caster that targets can be hit from 
@@ -28,8 +39,6 @@ namespace War3Map.Template.Source
             const float kDamage = 250;
             // Max number of targets the spell can hit 
             const uint kMaxTargets = 6;
-            // a variable to decrement each time we hit a target 
-            uint count = kMaxTargets;
 
             // Gets the unit that cast the spell associated with  
             // this trigger and saves it into a variable 
@@ -40,45 +49,93 @@ namespace War3Map.Template.Source
 
             // Create a group variable to hold the units the spell will hit 
             group targets = CreateGroup();
-            // Put all units within spellRange of caster into the targets group 
-            GroupEnumUnitsInRange(targets, startX, startY, kSpellRange, null);
+            // Only the first kMaxTargets units that cause filterCondition 
+            // to return true will be added to the group.
+            GroupEnumUnitsInRangeCounted(targets, startX, startY, kSpellRange, 
+                                         Condition(filterCondition), (int)kMaxTargets);
+
+            // Time to play attack animation
+            const float kAttackTime = 0.65f;
+            // Total time the spell should take 
+            float followThroughTime = kAttackTime * BlzGroupGetSize(targets);
+            // Sets the spell follow through time to the calculated value 
+            BlzSetAbilityRealLevelField(GetSpellAbility(), 
+                                        ABILITY_RLF_FOLLOW_THROUGH_TIME, 0, followThroughTime);
+
+            // Effect model names
+            const string blinkName = @"Abilities\Spells\NightElf\Blink\BlinkCaster.mdl";
+            const string shockName = @"Abilities\Spells\Items\AIlb\AIlbSpecialArt.mdl";
+
             // This variable will store the target we're currently hitting 
             // Start with the first unit in the group 
             unit currentTarget = FirstOfGroup(targets);
 
             // While there's still a target to hit and we have't yet hit max targets
-            while (currentTarget != null && count > 0)
+            while (currentTarget != null)
             {
-                // GroupEnumUnitsInRangeOfLoc includes allied and dead units 
-                // Check that the unit we're currently considering to hit 
-                // is both an enemy and alive 
-                if (IsUnitEnemy(currentTarget, GetOwningPlayer(caster)) &&
-                    BlzIsUnitSelectable(currentTarget))   // Could use UnitAlive instead BlzUnitSelectable
-                {                                         // During death animation, units are still considered 
-                                                          // alive, but not selectable
-                    // Get the position of the enemy we're targeting 
-                    float targetX = GetUnitX(currentTarget);
-                    float targetY = GetUnitY(currentTarget);
-                    // Teleport our caster to the enemy's position
-                    SetUnitPosition(caster, targetX, targetY);
+                // Get start location for blink effect 
+                float oldCasterX = GetUnitX(caster);
+                float oldCasterY = GetUnitY(caster);
+                // Create blink effect, save it to clean up later 
+                effect preBlinkEffect = AddSpecialEffect(blinkName, oldCasterX, oldCasterY);
 
-                    // Have the caster deal damage to the enemy 
-                    UnitDamageTarget(caster, currentTarget, kDamage, true, false,
-                        ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL, null);
+                //
+                // Teleport to, face, and attack enemy 
+                //
+                const float twoPi = 2.0f * War3Api.Blizzard.bj_PI;
+                // Get the position of the enemy we're targeting 
+                float targetX = GetUnitX(currentTarget);
+                float targetY = GetUnitY(currentTarget);
+                // Cant occupy same spot as target. If try to, will get pushed
+                // out in the same direction every time and it looks bad
+                // pick a random angle and calculate an offset in that direction
+                float randomOffsetAngle = GetRandomReal(0.0f, twoPi);
+                const float kOffsetRadius = 50.0f;
+                float offsetX = kOffsetRadius * Cos(randomOffsetAngle);
+                float offsetY = kOffsetRadius * Sin(randomOffsetAngle); 
+                // teleport a slight offset away from target
+                SetUnitPosition(caster, targetX + offsetX, targetY + offsetY);
+                // Might not be in the exact expected position
+                // get position after teleport 
+                float newCasterX = GetUnitX(caster);
+                float newCasterY = GetUnitY(caster);
 
-                    // Decrement the count, as we hit a target 
-                    count -= 1;
+                // Spawn another blink at caster's new position
+                effect postBlinkEffect = AddSpecialEffect(blinkName, newCasterX, newCasterY);
 
-                    // Take a brief pause before teleporting to the next target 
-                    TriggerSleepAction(0.35f);
-                }
+                // Get the diference between the caster and the target 
+                float deltaX = targetX - newCasterX;
+                float deltaY = targetY - newCasterY;
+                // Take the inverse tangent of that difference vector 
+                float angleInRadians = Atan2(deltaY, deltaX);
+                // and convert it from radians to degrees 
+                float angleInDegrees = War3Api.Blizzard.bj_RADTODEG * angleInRadians;
+                // Make the caster face the calculated angle 
+                SetUnitFacing(caster, angleInDegrees);
+                // Have the caster play its attack animation
+                SetUnitAnimation(caster, "attack");
+                // Sleep to let the caster play its animation
+                TriggerSleepAction(kAttackTime);
+
+                // Have the caster deal damage to the enemy 
+                UnitDamageTarget(caster, currentTarget, kDamage, true, false,
+                    ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL, null);
+
+                // Create shock effect on damage attached to the target's chest
+                effect shockEffect = AddSpecialEffectTarget(shockName, currentTarget, "chest");
+                // Scale up shock effect 
+                BlzSetSpecialEffectScale(shockEffect, 1.5f);
 
                 // Remove the unit we just considered from the group 
                 GroupRemoveUnit(targets, currentTarget);
-
                 // Get the next unit in the group to consider. If the group is
                 // empty, this will return null and break out of the while loop
                 currentTarget = FirstOfGroup(targets);
+
+                // Clean up effects 
+                DestroyEffect(preBlinkEffect);
+                DestroyEffect(postBlinkEffect);
+                DestroyEffect(shockEffect);
             }
 
             // Certain Warcraft 3 types, like groups, need to be cleaned up 
